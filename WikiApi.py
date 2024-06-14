@@ -6,9 +6,11 @@ from matplotlib import figure
 import graphviz
 import sys
 import re
+#we'll probably need to create a map and use pandas for the string replacement but as of now we've got minecraft correctly graphed.
 def genWikiLinksByTitle(title): 
     with open('minecraftnodelist.tsv', 'xt', encoding='utf-8') as node_file:
-        node_file.write(f'{title!r}\n')
+        titleText = re.sub('\"','\\\"', re.sub('\'','\\\'', title))
+        node_file.write(f'{titleText}\n')
     response = requests.Session().get( 
         url="https://en.wikipedia.org/w/api.php", 
         params={ 
@@ -25,11 +27,11 @@ def genWikiLinksByTitle(title):
     wikiData = response.json() 
     pages = wikiData['query']['pages'][0]['links']
     for page in pages: 
-        x = re.sub('\'','\\\'', page['title'])
+        x = re.sub('\"','\\\"', re.sub('\'','\\\'', page['title']))
         with open('minecraftnodelist.tsv', 'at', encoding='utf-8') as node_file:
-            node_file.write(f'{x!r}\n') 
+            node_file.write(f'{x}\n') 
         with open('minecraftedgelist.tsv', 'at', encoding='utf-8') as edge_file:
-            edge_file.write(f'{title!r}\t{x!r}\n')
+            edge_file.write(f'{title}\t{x}\n')
 genWikiLinksByTitle("Minecraft")
 mineGraph = Graph.from_csv(
     edge_path="./minecraftedgelist.tsv",
